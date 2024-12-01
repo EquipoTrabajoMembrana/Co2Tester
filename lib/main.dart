@@ -1,4 +1,3 @@
-// import 'package:co2tester/presentation/pages/error_page/error_page.dart';
 import 'package:co2tester/presentation/pages/home_page/home_page.dart';
 import 'package:co2tester/presentation/theme/theme.dart';
 import 'package:co2tester/presentation/theme/util.dart';
@@ -13,10 +12,6 @@ Future<void> main() async {
     url: AppResources.supabaseUrl,
     anonKey: AppResources.supabaseAnonKey,
   );
-  // FlutterError.onError = (FlutterErrorDetails details) {
-  //   FlutterError.dumpErrorToConsole(details);
-  //   runApp(ErrorWidgetClass(details));
-  // };
   runApp(const MyApp());
 }
 
