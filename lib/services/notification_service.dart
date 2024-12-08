@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:uuid/uuid.dart';
 
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
@@ -14,6 +16,8 @@ class NotificationService {
 
   final _messaging = FirebaseMessaging.instance;
   final _localNotification = FlutterLocalNotificationsPlugin();
+  final _supabase = Supabase.instance.client;
+
   bool _isFlutterLocalNotificationsInitialized = false;
 
   Future<void> initialize() async {
@@ -27,6 +31,13 @@ class NotificationService {
     //get FCM token
     final token = await _messaging.getToken();
     print('FMC token: $token');
+
+    if (token != null) {
+      await _saveTokenToSupabase(token);
+    }
+
+    //suscribe to all devices/broadcast
+    suscribeToTopic('all_devices');
   }
 
   Future<void> _requestPermission() async {
@@ -82,7 +93,7 @@ class NotificationService {
         notification.hashCode,
         notification.title,
         notification.body,
-        NotificationDetails(
+       const NotificationDetails(
           android: AndroidNotificationDetails(
             'high_importance_channel',
             'High Importance Notification',
@@ -116,5 +127,29 @@ class NotificationService {
 
   void _handleBackgroundMessage(RemoteMessage message) {
     if (message.data['type'] == 'chat') {}
+  }
+
+  Future<void> suscribeToTopic(String topic) async {
+    await FirebaseMessaging.instance.subscribeToTopic(topic);
+    print('suscribed to $topic');
+  }
+
+  Future<void> _saveTokenToSupabase(String token) async {
+    final String id = const Uuid().v4();
+    try {
+      // Intenta insertar o actualizar el token en Supabase
+      final response = await _supabase.from('profiles').upsert({
+        'fcm_token': token,
+        'id': id,
+      });
+
+      if (response is Map && response['error'] != null) {
+        print('Error al guardar el token en Supabase: ${response['error']}');
+      } else {
+        print('Token guardado/actualizado correctamente en Supabase');
+      }
+    } catch (e) {
+      print('Error al enviar token a Supabase: $e');
+    }
   }
 }

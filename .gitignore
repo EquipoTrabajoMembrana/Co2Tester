@@ -44,3 +44,6 @@ app.*.map.json
 
 # Resources related to api
 /lib/resources/
+firebase-messaging-sw.js
+/web/index.html
+/supabase/functions/service-account.json
